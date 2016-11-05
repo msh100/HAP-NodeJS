@@ -2,19 +2,19 @@ var Accessory = require('../').Accessory;
 var Service = require('../').Service;
 var Characteristic = require('../').Characteristic;
 var uuid = require('../').uuid;
-
+var dgram = require('dgram');
+var RMControl= require('../RMControl.js');
 
 // here's a fake hardware device that we'll expose to HomeKit
 var FAKE_FAN = {
   powerOn: false,
   setPowerOn: function(on) {
-    if(on){
-      //put your code here to turn on the fan
+    if (on == 1) {
+      RMControl.controlDevice('fan', 'bedroom', 'on');
       FAKE_FAN.powerOn = on;
-    }
-    else{
-      //put your code here to turn off the fan
-      FAKE_FAN.powerOn = on;
+    } else {
+      RMControl.controlDevice('fan', 'bedroom', 'off');
+      FAKE_FAN.powerOn = false;
     }
   },
   setSpeed: function(value) {
@@ -79,7 +79,6 @@ fan
 // also add an "optional" Characteristic for spped
 fan
   .getService(Service.Fan)
-  .addCharacteristic(Characteristic.RotationSpeed)
   .on('get', function(callback) {
     callback(null, FAKE_FAN.rSpeed);
   })

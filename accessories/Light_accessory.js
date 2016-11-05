@@ -2,15 +2,21 @@ var Accessory = require('../').Accessory;
 var Service = require('../').Service;
 var Characteristic = require('../').Characteristic;
 var uuid = require('../').uuid;
+var RMControl= require('../RMControl.js');
 
 // here's a fake hardware device that we'll expose to HomeKit
 var FAKE_LIGHT = {
   powerOn: false,
   brightness: 100, // percentage
-  
-  setPowerOn: function(on) { 
-    console.log("Turning the light %s!", on ? "on" : "off");
-    FAKE_LIGHT.powerOn = on;
+
+  setPowerOn: function(on) {
+    if (on == 1) {
+      RMControl.controlDevice('light', 'office', 'on');
+      FAKE_LIGHT.powerOn = on;
+    } else {
+      RMControl.controlDevice('light', 'office', 'off');
+      FAKE_LIGHT.powerOn = false;
+    }
   },
   setBrightness: function(brightness) {
     console.log("Setting light brightness to %s", brightness);
@@ -49,7 +55,7 @@ light.on('identify', function(paired, callback) {
 // Add the actual Lightbulb Service and listen for change events from iOS.
 // We can see the complete list of Services and Characteristics in `lib/gen/HomeKitTypes.js`
 light
-  .addService(Service.Lightbulb, "Fake Light") // services exposed to the user should have "names" like "Fake Light" for us
+  .addService(Service.Lightbulb, "Light") // services exposed to the user should have "names" like "Fake Light" for us
   .getCharacteristic(Characteristic.On)
   .on('set', function(value, callback) {
     FAKE_LIGHT.setPowerOn(value);
@@ -82,7 +88,6 @@ light
 // also add an "optional" Characteristic for Brightness
 light
   .getService(Service.Lightbulb)
-  .addCharacteristic(Characteristic.Brightness)
   .on('get', function(callback) {
     callback(null, FAKE_LIGHT.brightness);
   })
